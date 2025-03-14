@@ -1,36 +1,25 @@
 import {Request, Response, Router} from "express";
+import {productsRepository} from "../repositiries/products-repository";
 
-const products = [{id: 1, title: 'tomato'}, {id: 2, title: 'orange'}, {id: 23, title: 'apple'}]
+//презентационный слой
 
 // Создание экземпляра маршрутизатора
 export const productsRouter = Router()
 
 // Маршрут для получения продуктов с фильтрацией по названию
 productsRouter.get('/', (req: Request, res: Response) => {
-    if(req.query.title){
-        let searchString = req.query.title.toString()
-        res.send(products.filter(el => el.title.indexOf(searchString) > -1))
-    }else{
-        res.send(products)
-    }
+    const foundProducts = productsRepository.findProducts(req.query.title?.toString())
+    res.send(foundProducts)
+    // if(req.query.title){
+    //     let searchString = req.query.title.toString()
+    //     res.send(products.filter(el => el.title.indexOf(searchString) > -1))
+    // }else{
+    //     res.send(products)
+    // }
 })
-
-productsRouter.get('/tomato', (res: Response) => {
-    let tomato = products.find(el => el.title === 'tomato')
-    res.send(tomato)
-})
-
-// productsRouter.get('/:productTitle', (req: Request, res: Response) => {
-//     let product = products.find(el => el.title === req.params.productTitle)
-//     if(product){
-//         res.send(product)
-//     }else {
-//         res.send(404)
-//     }
-// })
 
 productsRouter.get('/:id', (req: Request, res: Response) => {
-    let product = products.find(el => el.id === +req.params.id)
+    let product = productsRepository.getProductById(+req.params.id)
     if(product){
         res.send(product)
     }else {
@@ -39,18 +28,13 @@ productsRouter.get('/:id', (req: Request, res: Response) => {
 })
 
 productsRouter.post('/', (req: Request, res: Response) => {
-    const newProduct = {
-        id: +(new Date()),
-        title:  req.body.title
-    }
-    products.push(newProduct)
+    const newProduct = productsRepository.createProduct(req.body.title)
     res.status(201).send(newProduct)
 })
 
 productsRouter.put('/:id', (req: Request, res: Response) => {
-    let product = products.find(el => el.id === +req.params.id)
+    let product = productsRepository.updateProduct(+req.params.id, req.body.title)
     if(product){
-        product.title = req.body.title
         res.send(product)
     }else {
         res.sendStatus(404)
@@ -58,12 +42,11 @@ productsRouter.put('/:id', (req: Request, res: Response) => {
 })
 
 productsRouter.delete('/:id', (req: Request, res: Response) => {
-    for( let i =0; i < products.length; i++){
-        if( products[i].id === +req.params.id ){
-            products.splice(i, 1)
-            res.send(204)
-            return;
-        }
+    const isDeleted = productsRepository.deleteProduct(+req.params.id)
+    if(isDeleted){
+        res.sendStatus(204)
+    } else {
+        res.sendStatus(404)
     }
-    res.sendStatus(404)
+
 })
