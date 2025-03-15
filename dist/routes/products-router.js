@@ -3,6 +3,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.productsRouter = void 0;
 const express_1 = require("express");
 const products_repository_1 = require("../repositiries/products-repository");
+const express_validator_1 = require("express-validator");
+const inputValidationMiddleware_1 = require("../middlewares/inputValidationMiddleware");
 //презентационный слой
 // Создание экземпляра маршрутизатора
 exports.productsRouter = (0, express_1.Router)();
@@ -27,7 +29,12 @@ exports.productsRouter.get('/:id', (req, res) => {
         res.sendStatus(404);
     }
 });
-exports.productsRouter.post('/', (req, res) => {
+const titleValidation = (0, express_validator_1.body)('title').trim().isLength({ min: 3, max: 30 }).withMessage('Title should be from 3 to 30 symbols');
+exports.productsRouter.post('/', 
+//Input validation, express-validator
+titleValidation, inputValidationMiddleware_1.inputValidationMiddleware, 
+//В Express обработчик маршрута ожидает, что он будет возвращать void
+(req, res) => {
     const newProduct = products_repository_1.productsRepository.createProduct(req.body.title);
     res.status(201).send(newProduct);
 });

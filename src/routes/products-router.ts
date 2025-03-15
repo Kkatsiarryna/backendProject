@@ -1,5 +1,7 @@
 import {Request, Response, Router} from "express";
 import {productsRepository} from "../repositiries/products-repository";
+import {body, validationResult} from "express-validator";
+import {inputValidationMiddleware} from "../middlewares/inputValidationMiddleware";
 
 //презентационный слой
 
@@ -27,10 +29,18 @@ productsRouter.get('/:id', (req: Request, res: Response) => {
     }
 })
 
-productsRouter.post('/', (req: Request, res: Response) => {
-    const newProduct = productsRepository.createProduct(req.body.title)
-    res.status(201).send(newProduct)
-})
+const titleValidation = body('title').trim().isLength({min:3, max: 30}).withMessage('Title should be from 3 to 30 symbols')
+
+productsRouter.post('/',
+    //Input validation, express-validator
+    titleValidation,
+    inputValidationMiddleware,
+        //В Express обработчик маршрута ожидает, что он будет возвращать void
+        (req: Request, res: Response): void => {
+            const newProduct = productsRepository.createProduct(req.body.title)
+            res.status(201).send(newProduct)
+        }
+)
 
 productsRouter.put('/:id', (req: Request, res: Response) => {
     let product = productsRepository.updateProduct(+req.params.id, req.body.title)
