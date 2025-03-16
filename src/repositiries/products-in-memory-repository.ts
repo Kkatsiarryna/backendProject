@@ -1,13 +1,17 @@
 
 //data access layer
+export type ProductType ={
+    id: number
+    title: string
+}
 
-const products = [
+const products: ProductType[] = [
     {id: 1, title: 'tomato'},
     {id: 2, title: 'orange'},
     {id: 23, title: 'apple'}
 ]
 export const productsRepository = {
-    findProducts(title: string | null | undefined){
+    async findProducts(title: string | null | undefined): Promise<ProductType[]>{
         if(title){
             let filteredProducts = products.filter(el => el.title.indexOf(title) > -1)
             return filteredProducts
@@ -15,10 +19,15 @@ export const productsRepository = {
             return products
         }
     },
-    getProductById(id: number){
-        return products.find(el => el.id === id)
+    async getProductById(id: number): Promise<ProductType | null>{
+        let product =  products.find(el => el.id === id)
+        if(product){
+            return product
+        } else {
+            return null
+        }
     },
-    createProduct(title: string) {
+    async createProduct(title: string): Promise<ProductType> {
         const newProduct = {
             id: +(new Date()),
             title:  title,
@@ -26,14 +35,16 @@ export const productsRepository = {
         products.push(newProduct)
         return newProduct
     },
-    updateProduct(id: number, title: string) {
+    async updateProduct(id: number, title: string): Promise<ProductType | null> {
         let product = products.find(el => el.id === id)
         if(product){
             product.title = title
             return product
+        } else {
+            return null
         }
     },
-    deleteProduct(id: number){
+    async deleteProduct(id: number): Promise<boolean>{
         for( let i =0; i < products.length; i++){
             if( products[i].id === id ){
                 products.splice(i, 1)
